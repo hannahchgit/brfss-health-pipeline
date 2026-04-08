@@ -1,0 +1,45 @@
+# Data files (too large for git)
+data/raw/
+data/processed/
+data/duckdb/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+*.egg
+.eggs/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# dbt
+dbt_brfss/target/
+dbt_brfss/logs/
+dbt_brfss/dbt_packages/
+dbt_brfss/.user.yml
+
+# Great Expectations
+expectations/uncommitted/
+
+# Prefect
+.prefect/
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp

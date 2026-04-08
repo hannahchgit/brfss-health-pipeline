@@ -1,0 +1,44 @@
+name: 'brfss_health'
+version: '1.0.0'
+config-version: 2
+
+profile: 'brfss_profile'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  brfss_health:
+    staging:
+      +schema: staging
+      +materialized: view
+      +docs:
+        node_color: "#3498db"
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+      +docs:
+        node_color: "#e67e22"
+    marts:
+      +schema: marts
+      +docs:
+        node_color: "#27ae60"
+      diabetes:
+        +materialized: table
+
+seeds:
+  brfss_health:
+    +schema: seeds
+    +column_types:
+      fips_code: varchar
+      state_abbr: varchar
+      state_name: varchar
+
+vars:
+  brfss_years: [2021, 2022, 2023]
+  raw_schema: raw

@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Lint with ruff
+        run: ruff check ingestion/ flows/ expectations/
+
+      - name: Run Python unit tests
+        run: pytest tests/ -v
+
+  dbt-validate:
+    name: dbt Compile & Seed Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Initialize DuckDB for CI (empty database)
+        run: |
+          mkdir -p data/duckdb
+          python -c "
+          import duckdb
+          from ingestion.config import DUCKDB_PATH, RAW_SCHEMA, STAGING_SCHEMA, INTERMEDIATE_SCHEMA, MARTS_SCHEMA
+          con = duckdb.connect(str(DUCKDB_PATH))
+          for schema in (RAW_SCHEMA, STAGING_SCHEMA, INTERMEDIATE_SCHEMA, MARTS_SCHEMA):
+              con.execute(f'CREATE SCHEMA IF NOT EXISTS {schema}')
+          con.close()
+          print('DuckDB initialized.')
+          "
+
+      - name: dbt deps
+        working-directory: dbt_brfss
+        run: dbt deps
+
+      - name: dbt seed
+        working-directory: dbt_brfss
+        run: dbt seed
+
+      - name: dbt compile (validate SQL without running)
+        working-directory: dbt_brfss
+        run: dbt compile
+
+      - name: sqlfluff lint dbt models
+        working-directory: dbt_brfss
+        run: sqlfluff lint models/ --dialect duckdb --templater dbt || true
+        # || true: lint warnings don't block CI; remove when lint is clean

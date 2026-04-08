@@ -1,0 +1,11 @@
+# dbt connection profile for DuckDB.
+# This file is checked into git because it contains no secrets.
+# The DuckDB path is relative to the dbt project root (dbt_brfss/).
+brfss_profile:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "../data/duckdb/brfss.duckdb"
+      schema: main
+      threads: 4

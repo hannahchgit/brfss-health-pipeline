@@ -1,0 +1,29 @@
+version: 2
+
+sources:
+  - name: brfss_raw
+    schema: raw
+    description: >
+      Raw BRFSS (Behavioral Risk Factor Surveillance System) data loaded directly
+      from CDC SAS transport (XPT) files. Each table represents one survey year.
+      The unified view `brfss_all` is a UNION ALL across all years.
+    tables:
+      - name: brfss_all
+        description: UNION ALL view across all loaded BRFSS survey years (2021-2023).
+        columns:
+          - name: survey_year
+            description: Survey year added during ingestion (2021, 2022, or 2023).
+          - name: llcpwt
+            description: >
+              Final combined landline/cellphone survey weight (_LLCPWT).
+              Must be used for all population-representative estimates.
+          - name: ststr
+            description: Stratum for Taylor Series Linearization variance estimation.
+          - name: psu
+            description: Primary sampling unit for variance estimation.
+          - name: state
+            description: State FIPS code (1-56).
+          - name: diabete4
+            description: Self-reported diabetes diagnosis (1=Yes, 3=No, 4=Prediabetes, etc.).
+          - name: bmi5
+            description: Calculated BMI stored as integer * 100 (e.g., 2500 = BMI 25.0).

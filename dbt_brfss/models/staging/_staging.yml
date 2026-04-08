@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: stg_brfss__respondents
+    description: >
+      Staging model for BRFSS respondents. One row per survey respondent per year.
+      Renames CDC variables to readable names, decodes categorical codes to labels,
+      corrects units (BMI * 100 → actual BMI), and filters invalid records.
+      This is the foundation for all downstream models.
+    columns:
+      - name: respondent_id
+        description: Synthetic unique identifier (ROW_NUMBER within the full dataset).
+        tests:
+          - unique
+          - not_null
+
+      - name: survey_year
+        description: Survey year (2021, 2022, or 2023).
+        tests:
+          - not_null
+          - accepted_values:
+              values: [2021, 2022, 2023]
+
+      - name: state_fips
+        description: State FIPS code.
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "state_fips BETWEEN 1 AND 78"
+
+      - name: llcpwt
+        description: Survey weight. Must be > 0 (zero-weight records are filtered out).
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+
+      - name: bmi_calc
+        description: Body Mass Index (original _BMI5 divided by 100). NULL if missing.
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "bmi_calc IS NULL OR (bmi_calc BETWEEN 10.0 AND 100.0)"
+              name: bmi_calc_in_plausible_range
+
+      - name: diabetes_status
+        description: Decoded diabetes diagnosis category.
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - 'Diagnosed'
+                - 'Gestational Only'
+                - 'No'
+                - 'Prediabetes'
+                - 'Unknown'
+
+      - name: sex
+        description: Respondent sex.
+        tests:
+          - accepted_values:
+              values: ['Male', 'Female', 'Unknown']
+
+      - name: age_group
+        description: Age group label derived from _AGEG5YR codes.

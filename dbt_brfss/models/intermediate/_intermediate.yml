@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: int_brfss__diabetes_flags
+    description: >
+      Adds boolean diabetes classification flags and a composite diabetes_category
+      to each respondent record. Downstream marts use these flags for filtering
+      and stratification without repeating CASE WHEN logic.
+    columns:
+      - name: respondent_id
+        description: Foreign key to stg_brfss__respondents.
+        tests:
+          - not_null
+          - unique
+      - name: is_diagnosed_diabetic
+        description: True if respondent reports a diabetes diagnosis (not gestational, not prediabetes).
+      - name: is_prediabetic
+        description: True if respondent reports prediabetes or borderline diabetes.
+      - name: is_insulin_dependent
+        description: True if respondent currently takes insulin.
+      - name: diabetes_category
+        description: >
+          Composite classification: Diagnosed Diabetic | Insulin-Dependent Diabetic |
+          Prediabetic | No Diabetes | Unknown.
+
+  - name: int_brfss__metabolic_risk
+    description: >
+      Computes a composite metabolic risk score (0-5) by summing binary risk indicators:
+      obesity, hypertension, physical inactivity, poor diet, and diabetes diagnosis.
+      Also flags respondents with high metabolic risk (score >= 3).
+    columns:
+      - name: respondent_id
+        description: Foreign key to stg_brfss__respondents.
+        tests:
+          - not_null
+          - unique
+      - name: metabolic_risk_score
+        description: Count of metabolic risk factors present (0-5). NULL if all inputs are NULL.
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "metabolic_risk_score IS NULL OR metabolic_risk_score BETWEEN 0 AND 5"
+      - name: high_metabolic_risk
+        description: True if metabolic_risk_score >= 3.
+
+  - name: int_brfss__survey_weights
+    description: >
+      Computes per-year normalized survey weights and weight diagnostics.
+      Used by mart models to verify weight integrity before computing
+      population estimates.

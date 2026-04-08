@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: fct_diabetes_prevalence
+    description: >
+      Survey-weighted diabetes prevalence estimates by state, year, age group,
+      and race/ethnicity. Grain: one row per (state × year × age_group × race_ethnicity).
+      All prevalence figures use the Horvitz-Thompson estimator via _LLCPWT.
+      This is the primary "hero" output of the pipeline.
+    columns:
+      - name: survey_year
+        tests: [not_null]
+      - name: state_fips
+        tests: [not_null]
+      - name: weighted_diabetes_prevalence
+        description: >
+          Weighted proportion of adults with a diabetes diagnosis (not gestational).
+          Range: 0.0-1.0.
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "weighted_diabetes_prevalence IS NULL OR weighted_diabetes_prevalence BETWEEN 0 AND 1"
+      - name: unweighted_n
+        description: Raw respondent count in this stratum.
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+
+  - name: fct_diabetes_risk_factors
+    description: >
+      Weighted prevalence of metabolic risk factors (obesity, hypertension,
+      inactivity, poor diet) stratified by diabetes status and year.
+      Grain: one row per (risk_factor × diabetes_category × year).
+      Enables comparison of risk factor burden between diabetic and non-diabetic populations.
+
+  - name: dim_respondent_demographics
+    description: >
+      Demographic dimension table for respondents. One row per respondent_id.
+      Use for joining demographic attributes to fact tables.
+
+  - name: fct_survey_weighted_estimates
+    description: >
+      Generic survey-weighted prevalence estimates for all key BRFSS variables,
+      stratified by state and year. Grain: one row per (variable × category × state × year).
+      A flexible mart for exploratory analysis and dashboard building.
