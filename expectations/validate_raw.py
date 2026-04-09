@@ -15,9 +15,8 @@ import sys
 
 import duckdb
 import great_expectations as gx
-from great_expectations.core.batch import RuntimeBatchRequest
 
-from ingestion.config import COLUMNS_TO_KEEP, COLUMN_NAME_MAP, DUCKDB_PATH, MIN_ROWS_PER_YEAR, YEARS
+from ingestion.config import COLUMN_NAME_MAP, DUCKDB_PATH, MIN_ROWS_PER_YEAR, YEARS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -26,9 +25,8 @@ log = logging.getLogger(__name__)
 EXPECTED_COLUMNS = list(COLUMN_NAME_MAP.values()) + ["survey_year", "loaded_at"]
 
 
-def get_raw_dataframe(year: int) -> "pd.DataFrame":
+def get_raw_dataframe(year: int):
     """Pull one year's raw table from DuckDB into a pandas DataFrame for GE validation."""
-    import pandas as pd
     con = duckdb.connect(str(DUCKDB_PATH), read_only=True)
     df = con.execute(f"SELECT * FROM raw.brfss_{year}").df()
     con.close()

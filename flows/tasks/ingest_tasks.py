@@ -42,7 +42,9 @@ def download_brfss_year(year: int, data_dir: Path = RAW_DATA_DIR, force: bool = 
     name="load-year-to-duckdb",
     description="Load one year of BRFSS XPT data into DuckDB raw schema.",
 )
-def load_year_to_duckdb(year: int, db_path: Path = DUCKDB_PATH, data_dir: Path = RAW_DATA_DIR) -> int:
+def load_year_to_duckdb(
+    year: int, db_path: Path = DUCKDB_PATH, data_dir: Path = RAW_DATA_DIR
+) -> int:
     """Load raw BRFSS data for a single year into DuckDB. Returns row count."""
     logger = get_run_logger()
     con = initialize_database(db_path)

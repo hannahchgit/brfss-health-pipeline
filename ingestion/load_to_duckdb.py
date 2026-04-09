@@ -7,7 +7,7 @@ Usage:
 
 import argparse
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
@@ -20,8 +20,8 @@ from ingestion.config import (
     DUCKDB_PATH,
     INTERMEDIATE_SCHEMA,
     MARTS_SCHEMA,
-    RAW_SCHEMA,
     RAW_DATA_DIR,
+    RAW_SCHEMA,
     STAGING_SCHEMA,
     YEARS,
 )
@@ -55,7 +55,9 @@ def read_xpt(filepath: Path, columns: list[str]) -> tuple[pd.DataFrame, object]:
     Only the columns in `columns` are returned to keep memory usage low.
     """
     log.info("Reading %s ...", filepath)
-    df, meta = pyreadstat.read_xport(str(filepath), usecols=columns, disable_datetime_conversion=True)
+    df, meta = pyreadstat.read_xport(
+        str(filepath), usecols=columns, disable_datetime_conversion=True
+    )
     log.info("  Read %d rows, %d columns", len(df), len(df.columns))
     return df, meta
 
@@ -70,7 +72,7 @@ def add_metadata(df: pd.DataFrame, year: int) -> pd.DataFrame:
     """Add survey_year and loaded_at columns."""
     df = df.copy()
     df["survey_year"] = year
-    df["loaded_at"] = datetime.now(tz=timezone.utc).isoformat()
+    df["loaded_at"] = datetime.now(tz=UTC).isoformat()
     return df
 
 

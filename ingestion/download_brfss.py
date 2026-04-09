@@ -103,7 +103,9 @@ def download_year(year: int, output_dir: Path, force: bool = False) -> Path:
 
     digest = compute_sha256(dest)
     sha_file.write_text(digest)
-    log.info("Year %d downloaded: %s (%.1f MB, SHA256=%s...)", year, dest, file_size / 1e6, digest[:12])
+    log.info(
+        "Year %d downloaded: %s (%.1f MB, SHA256=%s...)", year, dest, file_size / 1e6, digest[:12]
+    )
     return dest
 
 
